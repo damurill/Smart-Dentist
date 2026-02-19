@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../utils/axiosConfig';
-import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users, FileText, X } from 'lucide-react';
+import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users, FileText, X, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const Patients = () => {
@@ -57,6 +57,19 @@ const Patients = () => {
             fetchPatients();
         } catch (error) {
             console.error("Error creating patient:", error);
+        }
+    };
+
+    const handleDelete = async (patient) => {
+        if (window.confirm(t('patients.confirm_delete') || `¿Estás seguro que deseas eliminar a ${patient.name}? Esta acción borrará también su historial de citas.`)) {
+            try {
+                await axios.delete(`/api/patients/${patient.id}`);
+                fetchPatients(); // Refresh list
+                setActiveDropdown(null);
+            } catch (error) {
+                console.error("Error deleting patient:", error);
+                alert("Error al eliminar el paciente");
+            }
         }
     };
 
@@ -192,6 +205,13 @@ const Patients = () => {
                                                         >
                                                             <FileText className="w-4 h-4" />
                                                             Ver Historial Clínico
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(patient)}
+                                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Eliminar
                                                         </button>
                                                     </div>
                                                 )}

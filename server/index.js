@@ -148,9 +148,14 @@ app.put('/api/patients/:id', async (req, res) => {
 
 app.delete('/api/patients/:id', async (req, res) => {
     try {
+        // First delete all appointments for this patient
+        await db.execute({ sql: "DELETE FROM appointments WHERE patient_id = ?", args: [req.params.id] });
+
+        // Then delete the patient
         const result = await db.execute({ sql: "DELETE FROM patients WHERE id = ?", args: [req.params.id] });
-        await logAction('DELETE', 'PATIENT', req.params.id, "Deleted patient");
-        res.json({ message: "Patient deleted", changes: result.rowsAffected });
+
+        await logAction('DELETE', 'PATIENT', req.params.id, "Deleted patient and their appointments");
+        res.json({ message: "Patient and history deleted", changes: result.rowsAffected });
     } catch (err) {
         handleDbError(res, err);
     }
