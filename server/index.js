@@ -156,6 +156,23 @@ app.delete('/api/patients/:id', async (req, res) => {
     }
 });
 
+app.get('/api/patients/:id/history', async (req, res) => {
+    try {
+        const query = `
+            SELECT a.*, d.name as doctor_name, t.name as type_name, t.color as type_color
+            FROM appointments a
+            LEFT JOIN doctors d ON a.doctor_id = d.id
+            LEFT JOIN appointment_types t ON a.type_id = t.id
+            WHERE a.patient_id = ? AND a.deleted_at IS NULL
+            ORDER BY a.start_time DESC
+        `;
+        const result = await db.execute({ sql: query, args: [req.params.id] });
+        res.json(result.rows);
+    } catch (err) {
+        handleDbError(res, err);
+    }
+});
+
 // 2. APPOINTMENTS
 app.get('/api/appointments', async (req, res) => {
     const { date, start_date, end_date } = req.query;

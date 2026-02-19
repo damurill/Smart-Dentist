@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../utils/axiosConfig';
-import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users } from 'lucide-react';
+import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users, FileText, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const Patients = () => {
@@ -10,6 +10,12 @@ const Patients = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
+
+    // History Modal State
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [selectedPatient, setSelectedPatient] = useState(null);
+    const [patientHistory, setPatientHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     useEffect(() => {
         fetchPatients();
@@ -36,6 +42,20 @@ const Patients = () => {
             fetchPatients();
         } catch (error) {
             console.error("Error creating patient:", error);
+        }
+    };
+
+    const handleViewHistory = async (patient) => {
+        setSelectedPatient(patient);
+        setHistoryModalOpen(true);
+        setHistoryLoading(true);
+        try {
+            const res = await axios.get(`/api/patients/${patient.id}/history`);
+            setPatientHistory(res.data);
+        } catch (error) {
+            console.error("Error fetching history:", error);
+        } finally {
+            setHistoryLoading(false);
         }
     };
 
@@ -138,9 +158,21 @@ const Patients = () => {
                                                     <MessageCircle className="w-5 h-5" />
                                                 </button>
                                             )}
-                                            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                                                <MoreHorizontal className="w-5 h-5" />
-                                            </button>
+                                            <div className="relative group">
+                                                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                                                    <MoreHorizontal className="w-5 h-5" />
+                                                </button>
+                                                {/* Dropdown Menu */}
+                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 hidden group-hover:block z-10">
+                                                    <button
+                                                        onClick={() => handleViewHistory(patient)}
+                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                        Ver Historial Clínico
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
