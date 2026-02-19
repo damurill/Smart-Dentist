@@ -99,14 +99,11 @@ app.get('/api/audit_logs', async (req, res) => {
 // 1. PATIENTS
 app.get('/api/patients', async (req, res) => {
     const { search } = req.query;
-    let query = "SELECT * FROM patients";
+    let query = "SELECT * FROM patients WHERE deleted_at IS NULL";
     let args = [];
 
-    // Filter soft deleted? User didn't ask for patients, but good practice if we added column.
-    // For now, sticking to Doctors/Appointments as requested.
-
     if (search) {
-        query += " WHERE (name LIKE ? OR phone LIKE ?)";
+        query += " AND (name LIKE ? OR phone LIKE ?)";
         args = [`%${search}%`, `%${search}%`];
     }
     query += " ORDER BY name ASC";
@@ -148,14 +145,22 @@ app.put('/api/patients/:id', async (req, res) => {
 
 app.delete('/api/patients/:id', async (req, res) => {
     try {
-        // First delete all appointments for this patient
-        await db.execute({ sql: "DELETE FROM appointments WHERE patient_id = ?", args: [req.params.id] });
+        const timestamp = new Date().toISOString();
 
-        // Then delete the patient
-        const result = await db.execute({ sql: "DELETE FROM patients WHERE id = ?", args: [req.params.id] });
+        // Soft delete appointments
+        await db.execute({
+            sql: "UPDATE appointments SET deleted_at = ? WHERE patient_id = ?",
+            args: [timestamp, req.params.id]
+        });
 
-        await logAction('DELETE', 'PATIENT', req.params.id, "Deleted patient and their appointments");
-        res.json({ message: "Patient and history deleted", changes: result.rowsAffected });
+        // Soft delete patient
+        const result = await db.execute({
+            sql: "UPDATE patients SET deleted_at = ? WHERE id = ?",
+            args: [timestamp, req.params.id]
+        });
+
+        await logAction('DELETE', 'PATIENT', req.params.id, "Soft deleted patient and appointments");
+        res.json({ message: "Patient and history soft deleted", changes: result.rowsAffected });
     } catch (err) {
         handleDbError(res, err);
     }
@@ -168,7 +173,8 @@ app.get('/api/patients/:id/history', async (req, res) => {
             FROM appointments a
             LEFT JOIN doctors d ON a.doctor_id = d.id
             LEFT JOIN appointment_types t ON a.type_id = t.id
-            WHERE a.patient_id = ? AND a.deleted_at IS NULL
+            JOIN patients p ON a.patient_id = p.id
+            WHERE a.patient_id = ? AND a.deleted_at IS NULL AND p.deleted_at IS NULL
             ORDER BY a.start_time DESC
         `;
         const result = await db.execute({ sql: query, args: [req.params.id] });
@@ -188,7 +194,7 @@ app.get('/api/appointments', async (req, res) => {
         JOIN patients p ON a.patient_id = p.id
         LEFT JOIN doctors d ON a.doctor_id = d.id
         LEFT JOIN appointment_types t ON a.type_id = t.id
-        WHERE a.deleted_at IS NULL
+        WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
     `;
 
     let args = [];

@@ -24,7 +24,8 @@ async function initDatabase() {
             email TEXT,
             birth_date TEXT,
             notes TEXT,
-            tags TEXT
+            tags TEXT,
+            deleted_at TEXT DEFAULT NULL
         )`);
 
         // Doctors/Resources Table - Updated with new columns
@@ -75,6 +76,7 @@ async function initDatabase() {
 
 
         // --- Safe Auto-Migrations ---
+        await safeMigrate(client, 'patients', 'deleted_at', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'doctors', 'phone', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'doctors', 'deleted_at', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'appointments', 'deleted_at', 'TEXT DEFAULT NULL');
