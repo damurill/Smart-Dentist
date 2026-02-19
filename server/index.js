@@ -15,6 +15,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 
+// --- HELPER FUNCTIONS ---
+const logAction = async (action, entity, entity_id, details) => {
+    try {
+        await db.execute({
+            sql: "INSERT INTO audit_logs (action, entity, entity_id, details) VALUES (?, ?, ?, ?)",
+            args: [action, entity, entity_id, details]
+        });
+    } catch (err) {
+        console.error("Failed to log action:", err);
+    }
+};
+
 // --- ROUTES ---
 
 // Helper function to handle database errors
@@ -22,6 +34,16 @@ const handleDbError = (res, err) => {
     console.error("Database Error:", err);
     res.status(500).json({ error: err.message });
 };
+
+// 7. AUDIT LOGS
+app.get('/api/audit_logs', async (req, res) => {
+    try {
+        const result = await db.execute("SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 100");
+        res.json(result.rows);
+    } catch (err) {
+        handleDbError(res, err);
+    }
+});
 
 // 1. PATIENTS
 app.get('/api/patients', async (req, res) => {
@@ -49,7 +71,9 @@ app.post('/api/patients', async (req, res) => {
 
     try {
         const result = await db.execute({ sql, args: [name, phone, email, notes] });
-        res.json({ id: parseInt(result.lastInsertRowid), name, phone, email, notes });
+        const id = parseInt(result.lastInsertRowid);
+        await logAction('CREATE', 'PATIENT', id, `Created patient: ${name}`);
+        res.json({ id, name, phone, email, notes });
     } catch (err) {
         handleDbError(res, err);
     }
@@ -61,6 +85,7 @@ app.put('/api/patients/:id', async (req, res) => {
 
     try {
         const result = await db.execute({ sql, args: [name, phone, email, notes, req.params.id] });
+        await logAction('UPDATE', 'PATIENT', req.params.id, `Updated patient: ${name}`);
         res.json({ message: "Patient updated", changes: result.rowsAffected });
     } catch (err) {
         handleDbError(res, err);
@@ -70,6 +95,7 @@ app.put('/api/patients/:id', async (req, res) => {
 app.delete('/api/patients/:id', async (req, res) => {
     try {
         const result = await db.execute({ sql: "DELETE FROM patients WHERE id = ?", args: [req.params.id] });
+        await logAction('DELETE', 'PATIENT', req.params.id, "Deleted patient");
         res.json({ message: "Patient deleted", changes: result.rowsAffected });
     } catch (err) {
         handleDbError(res, err);
@@ -118,7 +144,9 @@ app.post('/api/appointments', async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?)`;
     try {
         const result = await db.execute({ sql, args: [patient_id, doctor_id, start_time, end_time, type_id, notes] });
-        res.json({ id: parseInt(result.lastInsertRowid), ...req.body });
+        const id = parseInt(result.lastInsertRowid);
+        await logAction('CREATE', 'APPOINTMENT', id, `Scheduled appointment for patient ID ${patient_id} with doctor ID ${doctor_id}`);
+        res.json({ id, ...req.body });
     } catch (err) {
         handleDbError(res, err);
     }
@@ -194,7 +222,9 @@ app.post('/api/doctors', async (req, res) => {
     const { name, color } = req.body;
     try {
         const result = await db.execute({ sql: "INSERT INTO doctors (name, color) VALUES (?, ?)", args: [name, color] });
-        res.json({ id: parseInt(result.lastInsertRowid), name, color });
+        const id = parseInt(result.lastInsertRowid);
+        await logAction('CREATE', 'DOCTOR', id, `Added doctor: ${name}`);
+        res.json({ id, name, color });
     } catch (err) {
         handleDbError(res, err);
     }
@@ -204,6 +234,7 @@ app.put('/api/doctors/:id', async (req, res) => {
     const { name, color } = req.body;
     try {
         await db.execute({ sql: "UPDATE doctors SET name = ?, color = ? WHERE id = ?", args: [name, color, req.params.id] });
+        await logAction('UPDATE', 'DOCTOR', req.params.id, `Updated doctor: ${name}`);
         res.json({ message: "Doctor updated" });
     } catch (err) {
         handleDbError(res, err);
@@ -211,9 +242,19 @@ app.put('/api/doctors/:id', async (req, res) => {
 });
 
 app.delete('/api/doctors/:id', async (req, res) => {
+    const { force } = req.query;
+    const id = req.params.id;
     try {
-        await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [req.params.id] });
-        res.json({ message: "Doctor deleted" });
+        if (force === 'true') {
+            await db.execute({ sql: "DELETE FROM appointments WHERE doctor_id = ?", args: [id] });
+            await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [id] });
+            await logAction('DELETE', 'DOCTOR', id, "Deleted doctor and all assigned appointments (FORCE)");
+            res.json({ message: "Doctor and all appointments deleted" });
+        } else {
+            await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [id] });
+            await logAction('DELETE', 'DOCTOR', id, "Deleted doctor");
+            res.json({ message: "Doctor deleted" });
+        }
     } catch (err) {
         // Check for foreign key constraint violation (LibSQL/SQLite specific)
         if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || err.message.includes('FOREIGN KEY constraint failed')) {
@@ -240,6 +281,7 @@ app.post('/api/appointment_types', async (req, res) => {
             sql: "INSERT INTO appointment_types (name, duration_minutes, price, color, follow_up_rule_days) VALUES (?, ?, ?, ?, ?)",
             args: [name, duration_minutes, price, color, follow_up_rule_days]
         });
+        await logAction('CREATE', 'TREATMENT', parseInt(result.lastInsertRowid), `Created treatment type: ${name}`);
         res.json({ id: parseInt(result.lastInsertRowid), ...req.body });
     } catch (err) {
         handleDbError(res, err);
@@ -253,6 +295,7 @@ app.put('/api/appointment_types/:id', async (req, res) => {
             sql: "UPDATE appointment_types SET name = ?, duration_minutes = ?, price = ?, color = ?, follow_up_rule_days = ? WHERE id = ?",
             args: [name, duration_minutes, price, color, follow_up_rule_days, req.params.id]
         });
+        await logAction('UPDATE', 'TREATMENT', req.params.id, `Updated treatment type: ${name}`);
         res.json({ message: "Type updated" });
     } catch (err) {
         handleDbError(res, err);
@@ -262,6 +305,7 @@ app.put('/api/appointment_types/:id', async (req, res) => {
 app.delete('/api/appointment_types/:id', async (req, res) => {
     try {
         await db.execute({ sql: "DELETE FROM appointment_types WHERE id = ?", args: [req.params.id] });
+        await logAction('DELETE', 'TREATMENT', req.params.id, "Deleted treatment type");
         res.json({ message: "Type deleted" });
     } catch (err) {
         handleDbError(res, err);
@@ -273,6 +317,7 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
     const { status } = req.body;
     try {
         await db.execute({ sql: "UPDATE appointments SET status = ? WHERE id = ?", args: [status, req.params.id] });
+        await logAction('UPDATE', 'APPOINTMENT', req.params.id, `Changed status to ${status}`);
         res.json({ message: "Status updated" });
     } catch (err) {
         handleDbError(res, err);

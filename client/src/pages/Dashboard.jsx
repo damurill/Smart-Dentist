@@ -22,6 +22,8 @@ const Dashboard = () => {
     // History Modal State
     const [historyDetails, setHistoryDetails] = useState([]);
     const [historyFilter, setHistoryFilter] = useState({ date: '', doctor_id: '' });
+    const [historyTab, setHistoryTab] = useState('appointments'); // 'appointments' or 'audit'
+    const [auditLogs, setAuditLogs] = useState([]);
 
     // 1. Fetch Doctors ONLY ONCE on mount
     useEffect(() => {
@@ -74,6 +76,21 @@ const Dashboard = () => {
             fetchDetails();
         }
     }, [showHistoryModal, historyFilter]);
+
+    // Fetch Audit Logs when tab is active
+    useEffect(() => {
+        if (showHistoryModal && historyTab === 'audit') {
+            const fetchAudit = async () => {
+                try {
+                    const res = await axios.get('/api/audit_logs');
+                    setAuditLogs(res.data);
+                } catch (error) {
+                    console.error("Error fetching audit logs:", error);
+                }
+            };
+            fetchAudit();
+        }
+    }, [showHistoryModal, historyTab]);
 
     const [selectedDoctor, setSelectedDoctor] = useState(null);
 
@@ -333,87 +350,148 @@ const Dashboard = () => {
                                 <button onClick={() => setShowHistoryModal(false)} className="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full transition-colors">✕</button>
                             </div>
 
-                            {/* Filters */}
-                            <div className="bg-gray-50 p-4 rounded-xl mb-4 flex flex-wrap gap-4 items-end">
-                                <div className="flex-1 min-w-[200px]">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('common.date')}</label>
-                                    <input
-                                        type="date"
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
-                                        value={historyFilter.date}
-                                        onChange={e => setHistoryFilter({ ...historyFilter, date: e.target.value })}
-                                    />
-                                </div>
-                                <div className="flex-1 min-w-[200px]">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('common.doctor')}</label>
-                                    <select
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
-                                        value={historyFilter.doctor_id}
-                                        onChange={e => setHistoryFilter({ ...historyFilter, doctor_id: e.target.value })}
-                                    >
-                                        <option value="">{t('dashboard.filter_all_doctors')}</option>
-                                        {doctors.map(d => (
-                                            <option key={d.id} value={d.id}>{d.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            {/* Modal Content with Tabs */}
+
+                            {/* Tabs */}
+                            <div className="flex gap-4 mb-4 border-b border-gray-100">
                                 <button
-                                    onClick={() => setHistoryFilter({ date: '', doctor_id: '' })}
-                                    className="px-4 py-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                                    onClick={() => setHistoryTab('appointments')}
+                                    className={`pb-2 font-medium transition-colors border-b-2 ${historyTab === 'appointments' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                                 >
-                                    {t('common.clear_filters')}
+                                    Citas
+                                </button>
+                                <button
+                                    onClick={() => setHistoryTab('audit')}
+                                    className={`pb-2 font-medium transition-colors border-b-2 ${historyTab === 'audit' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Auditoría de Sistema
                                 </button>
                             </div>
 
+                            {/* Filters (Only for appointments tab) */}
+                            {historyTab === 'appointments' && (
+                                <div className="bg-gray-50 p-4 rounded-xl mb-4 flex flex-wrap gap-4 items-end">
+                                    <div className="flex-1 min-w-[200px]">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('common.date')}</label>
+                                        <input
+                                            type="date"
+                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
+                                            value={historyFilter.date}
+                                            onChange={e => setHistoryFilter({ ...historyFilter, date: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-[200px]">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('common.doctor')}</label>
+                                        <select
+                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
+                                            value={historyFilter.doctor_id}
+                                            onChange={e => setHistoryFilter({ ...historyFilter, doctor_id: e.target.value })}
+                                        >
+                                            <option value="">{t('dashboard.filter_all_doctors')}</option>
+                                            {doctors.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <button
+                                        onClick={() => setHistoryFilter({ date: '', doctor_id: '' })}
+                                        className="px-4 py-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        {t('common.clear_filters')}
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="flex-1 overflow-y-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="text-xs text-gray-500 uppercase border-b border-gray-200">
-                                            <th className="py-3 font-semibold">{t('common.date')}</th>
-                                            <th className="py-3 font-semibold">{t('common.time')}</th>
-                                            <th className="py-3 font-semibold">{t('common.patient')}</th>
-                                            <th className="py-3 font-semibold">{t('common.doctor')}</th>
-                                            <th className="py-3 font-semibold">{t('common.treatment')}</th>
-                                            <th className="py-3 font-semibold text-right">{t('common.status')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {historyDetails.length > 0 ? (
-                                            historyDetails.map(apt => (
-                                                <tr key={apt.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="py-3 text-gray-900 font-medium">
-                                                        {new Date(apt.start_time).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="py-3 text-gray-600">
-                                                        {new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </td>
-                                                    <td className="py-3 text-gray-800 font-medium">{apt.patient_name}</td>
-                                                    <td className="py-3 text-gray-600">{apt.doctor_name}</td>
-                                                    <td className="py-3">
-                                                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-semibold">
-                                                            {apt.type_name}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 text-right">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                            apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                                'bg-gray-100 text-gray-600'
-                                                            }`}>
-                                                            {apt.status === 'confirmed' ? t('common.status_confirmed') :
-                                                                apt.status === 'cancelled' ? t('common.status_cancelled') : t('common.status_pending')}
-                                                        </span>
+                                {historyTab === 'appointments' ? (
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="text-xs text-gray-500 uppercase border-b border-gray-200">
+                                                <th className="py-3 font-semibold">{t('common.date')}</th>
+                                                <th className="py-3 font-semibold">{t('common.time')}</th>
+                                                <th className="py-3 font-semibold">{t('common.patient')}</th>
+                                                <th className="py-3 font-semibold">{t('common.doctor')}</th>
+                                                <th className="py-3 font-semibold">{t('common.treatment')}</th>
+                                                <th className="py-3 font-semibold text-right">{t('common.status')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {historyDetails.length > 0 ? (
+                                                historyDetails.map(apt => (
+                                                    <tr key={apt.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="py-3 text-gray-900 font-medium">
+                                                            {new Date(apt.start_time).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="py-3 text-gray-600">
+                                                            {new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </td>
+                                                        <td className="py-3 text-gray-800 font-medium">{apt.patient_name}</td>
+                                                        <td className="py-3 text-gray-600">{apt.doctor_name}</td>
+                                                        <td className="py-3">
+                                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-semibold">
+                                                                {apt.type_name}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3 text-right">
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                                apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                    'bg-gray-100 text-gray-600'
+                                                                }`}>
+                                                                {apt.status === 'confirmed' ? t('common.status_confirmed') :
+                                                                    apt.status === 'cancelled' ? t('common.status_cancelled') : t('common.status_pending')}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="6" className="py-8 text-center text-gray-500 italic">
+                                                        {t('dashboard.no_data')}
                                                     </td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="6" className="py-8 text-center text-gray-500 italic">
-                                                    {t('dashboard.no_data')}
-                                                </td>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="text-xs text-gray-500 uppercase border-b border-gray-200">
+                                                <th className="py-3 font-semibold">Fecha/Hora</th>
+                                                <th className="py-3 font-semibold">Acción</th>
+                                                <th className="py-3 font-semibold">Entidad</th>
+                                                <th className="py-3 font-semibold">Detalles</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {auditLogs.length > 0 ? (
+                                                auditLogs.map(log => (
+                                                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="py-3 text-gray-600 whitespace-nowrap pr-4">
+                                                            {new Date(log.timestamp + 'Z').toLocaleString()}
+                                                        </td>
+                                                        <td className="py-3">
+                                                            <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' :
+                                                                log.action === 'DELETE' ? 'bg-red-100 text-red-700' :
+                                                                    log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' :
+                                                                        'bg-gray-100 text-gray-600'
+                                                                }`}>
+                                                                {log.action}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3 text-gray-800 font-medium">{log.entity}</td>
+                                                        <td className="py-3 text-gray-600 text-sm">{log.details}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="4" className="py-8 text-center text-gray-500 italic">
+                                                        No hay registros de auditoría aún.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -57,6 +57,16 @@ async function initDatabase() {
             FOREIGN KEY (type_id) REFERENCES appointment_types(id)
         )`);
 
+        // Audit Logs Table
+        await client.execute(`CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            entity TEXT NOT NULL,
+            entity_id INTEGER,
+            details TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )`);
+
         await seedData();
         console.log("Database initialized successfully.");
     } catch (err) {

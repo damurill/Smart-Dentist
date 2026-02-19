@@ -53,8 +53,23 @@ const Settings = () => {
             fetchData();
         } catch (error) {
             console.error("Error deleting item:", error);
-            const msg = error.response?.data?.error || t('common.error_delete');
-            alert(msg);
+            const msg = error.response?.data?.error;
+
+            // Check if it's the specific constraint error for doctors
+            if (activeTab === 'doctors' && error.response?.status === 400 && msg === "No se puede eliminar el doctor porque tiene citas asignadas.") {
+                if (window.confirm("El doctor tiene citas asignadas. ¿Deseas eliminarlo de todas formas y borrar TODAS sus citas? Esta acción no se puede deshacer.")) {
+                    try {
+                        await axios.delete(`/api/doctors/${id}?force=true`);
+                        fetchData();
+                        return; // Exit on success
+                    } catch (forceError) {
+                        console.error("Error force deleting:", forceError);
+                        alert("Error al eliminar forzosamente.");
+                    }
+                }
+            } else {
+                alert(msg || t('common.error_delete'));
+            }
         }
     };
 
