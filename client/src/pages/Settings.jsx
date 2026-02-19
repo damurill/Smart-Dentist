@@ -8,10 +8,7 @@ const Settings = () => {
     const [activeTab, setActiveTab] = useState('doctors'); // 'doctors', 'treatments', 'messages'
     const [doctors, setDoctors] = useState([]);
     const [treatments, setTreatments] = useState([]);
-    const [settings, setSettings] = useState({
-        whatsapp_confirm: '',
-        whatsapp_reminder: ''
-    });
+
     const [loading, setLoading] = useState(true);
 
     // Form States
@@ -26,30 +23,16 @@ const Settings = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [docsRes, treatsRes, settingsRes] = await Promise.all([
+            const [docsRes, treatsRes] = await Promise.all([
                 axios.get('/api/doctors'),
-                axios.get('/api/appointment_types'),
-                axios.get('/api/settings')
+                axios.get('/api/appointment_types')
             ]);
             setDoctors(docsRes.data);
             setTreatments(treatsRes.data);
-            if (settingsRes.data) {
-                setSettings(prev => ({ ...prev, ...settingsRes.data }));
-            }
         } catch (error) {
             console.error("Error loading settings:", error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSaveSettings = async () => {
-        try {
-            await axios.post('/api/settings', settings);
-            alert(t('common.success'));
-        } catch (error) {
-            console.error("Error saving settings:", error);
-            alert(t('common.error_save'));
         }
     };
 
@@ -131,13 +114,7 @@ const Settings = () => {
                     <Stethoscope className="w-5 h-5" />
                     {t('settings.tab_treatments')}
                 </button>
-                <button
-                    onClick={() => setActiveTab('messages')}
-                    className={`pb-3 px-4 font-medium flex items-center gap-2 transition-colors border-b-2 whitespace-nowrap ${activeTab === 'messages' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                >
-                    <MessageSquare className="w-5 h-5" />
-                    {t('settings.tab_messages')}
-                </button>
+
                 <button
                     onClick={() => setActiveTab('subscription')}
                     className={`pb-3 px-4 font-medium flex items-center gap-2 transition-colors border-b-2 whitespace-nowrap ${activeTab === 'subscription' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
@@ -152,7 +129,7 @@ const Settings = () => {
                 <h3 className="text-lg font-semibold text-gray-700">
                     {activeTab === 'doctors' ? t('settings.doctors_title') :
                         activeTab === 'treatments' ? t('settings.treatments_title') :
-                            activeTab === 'messages' ? t('settings.messages_title') :
+                            activeTab === 'treatments' ? t('settings.treatments_title') :
                                 t('settings.subscription_title')}
                 </h3>
                 {(activeTab === 'doctors' || activeTab === 'treatments') && (
@@ -238,40 +215,7 @@ const Settings = () => {
                     </div>
                 )}
 
-                {activeTab === 'messages' && (
-                    <div className="p-6">
-                        <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
-                            <p className="text-sm text-blue-800 font-medium">{t('settings.variables_help')}</p>
-                        </div>
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">{t('settings.msg_confirmation')}</label>
-                                <textarea
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 h-32 outline-none focus:border-blue-500 text-sm"
-                                    value={settings.whatsapp_confirm || ''}
-                                    onChange={e => setSettings({ ...settings, whatsapp_confirm: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">{t('settings.msg_reminder')}</label>
-                                <textarea
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 h-32 outline-none focus:border-blue-500 text-sm"
-                                    value={settings.whatsapp_reminder || ''}
-                                    onChange={e => setSettings({ ...settings, whatsapp_reminder: e.target.value })}
-                                />
-                            </div>
-                            <div className="flex justify-end pt-4">
-                                <button
-                                    onClick={handleSaveSettings}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-blue-600/20"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    {t('common.save')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+
 
                 {activeTab === 'subscription' && (
                     <div className="p-8">

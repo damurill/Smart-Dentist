@@ -119,12 +119,6 @@ export const translations = {
             redirecting_payment: "Redirigiendo a la pasarela de pagos segura...",
             form_follow_up_rule: "Regla de Seguimiento",
             follow_up_help: "Sugerir próxima cita automáticamente después de X días (0 para desactivar).",
-            tab_messages: "Mensajes WhatsApp",
-            messages_title: "Plantillas de Mensajes",
-            messages_subtitle: "Personaliza los mensajes automáticos de WhatsApp",
-            msg_confirmation: "Mensaje de Confirmación",
-            msg_reminder: "Mensaje de Recordatorio",
-            variables_help: "Variables disponibles: ${patient_name}, ${type_name}, ${date}, ${time}"
         },
         patient_portal: {
             title: "Confirmación de Cita",
@@ -288,12 +282,6 @@ export const translations = {
             redirecting_payment: "Redirecting to secure payment gateway...",
             form_follow_up_rule: "Follow-up Rule",
             follow_up_help: "Suggest next appointment automatically after X days (0 to disable).",
-            tab_messages: "WhatsApp Messages",
-            messages_title: "Message Templates",
-            messages_subtitle: "Customize automated WhatsApp messages",
-            msg_confirmation: "Confirmation Message",
-            msg_reminder: "Reminder Message",
-            variables_help: "Available variables: ${patient_name}, ${type_name}, ${date}, ${time}"
         },
         patient_portal: {
             title: "Appointment Confirmation",

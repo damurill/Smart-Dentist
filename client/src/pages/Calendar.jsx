@@ -38,20 +38,18 @@ const Calendar = () => {
 
 
 
-    const [settings, setSettings] = useState({});
+
 
     const fetchInitialData = async () => {
         try {
-            const [doctorsRes, typesRes, patientsRes, settingsRes] = await Promise.all([
+            const [doctorsRes, typesRes, patientsRes] = await Promise.all([
                 axios.get('/api/doctors'),
                 axios.get('/api/appointment_types'),
-                axios.get('/api/patients'),
-                axios.get('/api/settings')
+                axios.get('/api/patients')
             ]);
             setDoctors(doctorsRes.data);
             setTypes(typesRes.data);
             setPatients(patientsRes.data);
-            if (settingsRes.data) setSettings(settingsRes.data);
 
             if (doctorsRes.data.length > 0) setFormData(prev => ({ ...prev, doctor_id: doctorsRes.data[0].id }));
             if (typesRes.data.length > 0) setFormData(prev => ({ ...prev, type_id: typesRes.data[0].id }));
@@ -156,26 +154,21 @@ const Calendar = () => {
             return;
         }
 
-        let messageTemplate = "";
+        let message = "";
+
+        // EDITA AQUÍ LOS MENSAJES DE WHATSAPP
+        // Puedes cambiar el texto dentro de las comillas.
+        // Mantén las variables ${patient_name}, ${date}, etc. si quieres que se reemplacen automáticamente.
 
         if (templateType === 'confirm') {
-            messageTemplate = settings.whatsapp_confirm ||
-                "Hola ${patient_name}, te escribimos de Smart Medical. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}*.";
+            message = `Hola ${patient_name}, te escribimos de Smart Medical. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}* respondiendo a este mensaje.`;
         } else if (templateType === 'reminder') {
-            messageTemplate = settings.whatsapp_reminder ||
-                "Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Smart Medical. Te esperamos.";
+            message = `Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Smart Medical. Te esperamos.`;
         }
 
-        // Replace placeholders safely
-        let message = messageTemplate
-            .replace(/\${patient_name}/g, patient_name || '')
-            .replace(/\${type_name}/g, type_name || '')
-            .replace(/\${date}/g, date || '')
-            .replace(/\${time}/g, time || '');
+        // Fin de la edición
 
-        // Encode and check length - though unlikely to hit limit with just this text
         const encodedMessage = encodeURIComponent(message);
-
         window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
     };
 
