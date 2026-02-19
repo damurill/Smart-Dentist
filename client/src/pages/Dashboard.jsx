@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, Calendar, Activity, TrendingUp, FileText } from 'lucide-react';
 import TrendChart from '../components/TrendChart';
@@ -6,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const Dashboard = () => {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         total_patients: 0,
         appointments_today: 0,
@@ -255,7 +257,9 @@ const Dashboard = () => {
                         ) : (
                             <p className="text-gray-500 italic text-center py-4 text-sm">{t('dashboard.no_pending') || 'No hay citas por confirmar'}</p>
                         )}
-                        <button className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
+                        <button
+                            onClick={() => navigate('/calendar')}
+                            className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
                             {t('dashboard.view_all') || 'Ver todas'}
                         </button>
                     </div>
@@ -300,7 +304,9 @@ const Dashboard = () => {
                         ) : (
                             <p className="text-gray-500 italic text-center py-4 text-sm">{t('dashboard.no_reminders') || 'No hay citas mañana'}</p>
                         )}
-                        <button className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
+                        <button
+                            onClick={() => navigate('/calendar')}
+                            className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
                             {t('dashboard.view_all') || 'Ver todas'}
                         </button>
                     </div>
