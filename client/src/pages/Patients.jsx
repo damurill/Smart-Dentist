@@ -267,6 +267,76 @@ const Patients = () => {
                     </div>
                 </div>
             )}
+
+            {/* History Modal */}
+            {historyModalOpen && selectedPatient && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 h-[80vh] flex flex-col">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Historial Clínico</h3>
+                                <p className="text-gray-500">Paciente: {selectedPatient.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setHistoryModalOpen(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X className="w-6 h-6 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-auto">
+                            {historyLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-gray-400">Cargando historial...</div>
+                                </div>
+                            ) : patientHistory.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                                    <FileText className="w-12 h-12 text-gray-300 mb-2" />
+                                    <p>No hay historial clínico disponible.</p>
+                                </div>
+                            ) : (
+                                <table className="w-full">
+                                    <thead className="bg-gray-50 sticky top-0">
+                                        <tr>
+                                            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Fecha</th>
+                                            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Tratamiento</th>
+                                            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Doctor</th>
+                                            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Notas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {patientHistory.map((record) => (
+                                            <tr key={record.id} className="hover:bg-gray-50/50">
+                                                <td className="py-3 px-4 text-sm text-gray-700">
+                                                    {new Date(record.start_time).toLocaleDateString()}
+                                                    <span className="text-xs text-gray-400 block">
+                                                        {new Date(record.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span
+                                                        className="px-2 py-1 rounded-full text-xs font-medium"
+                                                        style={{ backgroundColor: `${record.type_color || '#cccccc'}20`, color: record.type_color || '#666666' }}
+                                                    >
+                                                        {record.type_name}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-700">
+                                                    {record.doctor_name || '-'}
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-600 max-w-xs">
+                                                    {record.notes || '-'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
