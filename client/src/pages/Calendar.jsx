@@ -601,7 +601,7 @@ const Calendar = () => {
                 showForm && (
                     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-                            <h3 className="text-lg font-bold mb-4">{t('calendar.modal_title_new')}</h3>
+                            <h3 className="text-lg font-bold mb-4">{t('calendar.modal_title')}</h3>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('calendar.form_patient')}</label>

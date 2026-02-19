@@ -129,8 +129,7 @@ const Settings = () => {
                 <h3 className="text-lg font-semibold text-gray-700">
                     {activeTab === 'doctors' ? t('settings.doctors_title') :
                         activeTab === 'treatments' ? t('settings.treatments_title') :
-                            activeTab === 'treatments' ? t('settings.treatments_title') :
-                                t('settings.subscription_title')}
+                            t('settings.subscription_title')}
                 </h3>
                 {(activeTab === 'doctors' || activeTab === 'treatments') && (
                     <button
