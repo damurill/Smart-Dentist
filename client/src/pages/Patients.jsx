@@ -17,6 +17,21 @@ const Patients = () => {
     const [patientHistory, setPatientHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
 
+    // Dropdown State
+    const [activeDropdown, setActiveDropdown] = useState(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (activeDropdown && !event.target.closest('.dropdown-container')) {
+                setActiveDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [activeDropdown]);
+
     useEffect(() => {
         fetchPatients();
     }, [search]);
@@ -158,20 +173,28 @@ const Patients = () => {
                                                     <MessageCircle className="w-5 h-5" />
                                                 </button>
                                             )}
-                                            <div className="relative group">
-                                                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                                            <div className="relative dropdown-container">
+                                                <button
+                                                    onClick={() => setActiveDropdown(activeDropdown === patient.id ? null : patient.id)}
+                                                    className={`p-2 rounded-lg transition-colors ${activeDropdown === patient.id ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                                                >
                                                     <MoreHorizontal className="w-5 h-5" />
                                                 </button>
                                                 {/* Dropdown Menu */}
-                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 hidden group-hover:block z-50">
-                                                    <button
-                                                        onClick={() => handleViewHistory(patient)}
-                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                                    >
-                                                        <FileText className="w-4 h-4" />
-                                                        Ver Historial Clínico
-                                                    </button>
-                                                </div>
+                                                {activeDropdown === patient.id && (
+                                                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                        <button
+                                                            onClick={() => {
+                                                                handleViewHistory(patient);
+                                                                setActiveDropdown(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                        >
+                                                            <FileText className="w-4 h-4" />
+                                                            Ver Historial Clínico
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
