@@ -161,9 +161,9 @@ const Calendar = () => {
         // Mantén las variables ${patient_name}, ${date}, etc. si quieres que se reemplacen automáticamente.
 
         if (templateType === 'confirm') {
-            message = `Hola ${patient_name}, te escribimos de Clínica Dental Del Oeste. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}* respondiendo a este mensaje.`;
+            message = `Hola ${patient_name}, te escribimos de Clínica del Oeste. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}* respondiendo a este mensaje.`;
         } else if (templateType === 'reminder') {
-            message = `Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Clínica Dental Del Oeste. Te esperamos.`;
+            message = `Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Clínica del Oeste. Te esperamos.`;
         }
 
         // Fin de la edición
