@@ -29,7 +29,12 @@ export const translations = {
             top_treatments: "Top Tratamientos",
             no_data: "No hay datos suficientes aún.",
             no_appointments_today: "No hay citas programadas para hoy.",
-            appointments_list_title: "Citas por Doctor"
+            appointments_list_title: "Citas por Doctor",
+            pending_confirmations_title: "Confirmaciones Pendientes",
+            reminders_title: "Recordatorios para Mañana",
+            no_pending: "No hay citas pendientes de confirmar",
+            no_reminders: "No hay citas programadas para mañana",
+            view_all: "Ver lista completa"
         },
         patients: {
             title: "Pacientes",
@@ -192,7 +197,12 @@ export const translations = {
             top_treatments: "Top Treatments",
             no_data: "Not enough data yet.",
             no_appointments_today: "No appointments scheduled for today.",
-            appointments_list_title: "Appointments by Doctor"
+            appointments_list_title: "Appointments by Doctor",
+            pending_confirmations_title: "Pending Confirmations",
+            reminders_title: "Tomorrow's Reminders",
+            no_pending: "No pending confirmations",
+            no_reminders: "No appointments scheduled for tomorrow",
+            view_all: "View full list"
         },
         patients: {
             title: "Patients",
