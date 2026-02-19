@@ -124,6 +124,13 @@ export const translations = {
             redirecting_payment: "Redirigiendo a la pasarela de pagos segura...",
             form_follow_up_rule: "Regla de Seguimiento",
             follow_up_help: "Sugerir próxima cita automáticamente después de X días (0 para desactivar).",
+            tab_audit: "Auditoría",
+            audit_title: "Registro de Auditoría",
+            audit_subtitle: "Historial de cambios y seguridad",
+            col_date: "Fecha/Hora",
+            col_action: "Acción",
+            col_entity: "Entidad",
+            col_details: "Detalles"
         },
         patient_portal: {
             title: "Confirmación de Cita",

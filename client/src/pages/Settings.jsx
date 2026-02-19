@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../utils/axiosConfig';
-import { Plus, Trash2, Edit2, Users, Stethoscope, Save, X, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Edit2, Users, Stethoscope, Save, X, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const Settings = () => {
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState('doctors'); // 'doctors', 'treatments', 'messages'
+    const [activeTab, setActiveTab] = useState('doctors'); // 'doctors', 'treatments', 'messages', 'audit'
     const [doctors, setDoctors] = useState([]);
     const [treatments, setTreatments] = useState([]);
+    const [auditLogs, setAuditLogs] = useState([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -18,17 +19,22 @@ const Settings = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [activeTab]); // Refetch when tab changes to ensure fresh logs
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [docsRes, treatsRes] = await Promise.all([
-                axios.get('/api/doctors'),
-                axios.get('/api/appointment_types')
-            ]);
-            setDoctors(docsRes.data);
-            setTreatments(treatsRes.data);
+            if (activeTab === 'audit') {
+                const logsRes = await axios.get('/api/audit_logs');
+                setAuditLogs(logsRes.data);
+            } else {
+                const [docsRes, treatsRes] = await Promise.all([
+                    axios.get('/api/doctors'),
+                    axios.get('/api/appointment_types')
+                ]);
+                setDoctors(docsRes.data);
+                setTreatments(treatsRes.data);
+            }
         } catch (error) {
             console.error("Error loading settings:", error);
         } finally {
@@ -122,6 +128,14 @@ const Settings = () => {
                     <div className="w-5 h-5 flex items-center justify-center font-bold text-lg leading-none">$</div>
                     {t('settings.tab_subscription')}
                 </button>
+
+                <button
+                    onClick={() => setActiveTab('audit')}
+                    className={`pb-3 px-4 font-medium flex items-center gap-2 transition-colors border-b-2 whitespace-nowrap ${activeTab === 'audit' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                    <ShieldCheck className="w-5 h-5" />
+                    {t('settings.tab_audit')}
+                </button>
             </div>
 
             {/* List Header */}
@@ -129,7 +143,8 @@ const Settings = () => {
                 <h3 className="text-lg font-semibold text-gray-700">
                     {activeTab === 'doctors' ? t('settings.doctors_title') :
                         activeTab === 'treatments' ? t('settings.treatments_title') :
-                            t('settings.subscription_title')}
+                            activeTab === 'audit' ? t('settings.audit_title') :
+                                t('settings.subscription_title')}
                 </h3>
                 {(activeTab === 'doctors' || activeTab === 'treatments') && (
                     <button
@@ -235,7 +250,6 @@ const Settings = () => {
                                         <p className="text-purple-100 mb-2">Esta es una versión de demostración con todas las funciones habilitadas.</p>
                                         <p className="font-semibold text-xl">Gratis <span className="text-sm font-normal text-purple-200">/ ilimitado</span></p>
                                     </div>
-                                    {/* Botón eliminado o cambiado de propósito */}
                                 </div>
                             </div>
 
@@ -258,6 +272,49 @@ const Settings = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'audit' && (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">{t('settings.col_date')}</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">{t('settings.col_action')}</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">{t('settings.col_entity')}</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">{t('settings.col_details')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {auditLogs.map(log => (
+                                    <tr key={log.id} className="hover:bg-gray-50/50">
+                                        <td className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                                            {new Date(log.timestamp).toLocaleString()}
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                                                ${log.action === 'DELETE' ? 'bg-red-50 text-red-600' :
+                                                    log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
+                                                        'bg-blue-50 text-blue-600'}`}>
+                                                {log.action}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-sm text-gray-700 font-medium">
+                                            {log.entity} <span className="text-gray-400 text-xs">#{log.entity_id}</span>
+                                        </td>
+                                        <td className="py-3 px-4 text-sm text-gray-600">
+                                            {log.details}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {auditLogs.length === 0 && (
+                                    <tr>
+                                        <td colSpan="4" className="p-8 text-center text-gray-400">No hay registros de auditoría disponibles.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </div>
