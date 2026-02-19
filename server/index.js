@@ -51,8 +51,11 @@ app.get('/api/patients', async (req, res) => {
     let query = "SELECT * FROM patients";
     let args = [];
 
+    // Filter soft deleted? User didn't ask for patients, but good practice if we added column.
+    // For now, sticking to Doctors/Appointments as requested.
+
     if (search) {
-        query += " WHERE name LIKE ? OR phone LIKE ?";
+        query += " WHERE (name LIKE ? OR phone LIKE ?)";
         args = [`%${search}%`, `%${search}%`];
     }
     query += " ORDER BY name ASC";
@@ -112,14 +115,15 @@ app.get('/api/appointments', async (req, res) => {
         JOIN patients p ON a.patient_id = p.id
         LEFT JOIN doctors d ON a.doctor_id = d.id
         LEFT JOIN appointment_types t ON a.type_id = t.id
+        WHERE a.deleted_at IS NULL
     `;
 
     let args = [];
     if (start_date && end_date) {
-        query += " WHERE a.start_time BETWEEN ? AND ?";
+        query += " AND a.start_time BETWEEN ? AND ?";
         args.push(start_date, end_date);
     } else if (date) {
-        query += " WHERE a.start_time BETWEEN ? AND ?";
+        query += " AND a.start_time BETWEEN ? AND ?";
         args.push(`${date}T00:00:00`, `${date}T23:59:59`);
     }
 
@@ -172,6 +176,7 @@ app.get('/api/appointments/history', async (req, res) => {
         JOIN doctors d ON a.doctor_id = d.id
         WHERE 
             a.status != 'cancelled' AND 
+            a.deleted_at IS NULL AND
             a.start_time >= ? AND 
             a.start_time <= ?
             ${doctorFilter}
@@ -197,7 +202,8 @@ app.get('/api/appointments/:id', async (req, res) => {
         JOIN patients p ON a.patient_id = p.id
         LEFT JOIN doctors d ON a.doctor_id = d.id
         LEFT JOIN appointment_types t ON a.type_id = t.id
-        WHERE a.id = ?
+        LEFT JOIN appointment_types t ON a.type_id = t.id
+        WHERE a.id = ? AND a.deleted_at IS NULL
     `;
     try {
         const result = await db.execute({ sql: query, args: [req.params.id] });
@@ -211,7 +217,7 @@ app.get('/api/appointments/:id', async (req, res) => {
 // 3. DOCTORS
 app.get('/api/doctors', async (req, res) => {
     try {
-        const result = await db.execute("SELECT * FROM doctors");
+        const result = await db.execute("SELECT * FROM doctors WHERE deleted_at IS NULL");
         res.json(result.rows);
     } catch (err) {
         handleDbError(res, err);
@@ -244,22 +250,45 @@ app.put('/api/doctors/:id', async (req, res) => {
 app.delete('/api/doctors/:id', async (req, res) => {
     const { force } = req.query;
     const id = req.params.id;
+    const now = new Date().toISOString();
+
     try {
+        // Check for active appointments
+        // Only count appointments that are NOT already soft-deleted
+        const checkRes = await db.execute({
+            sql: "SELECT count(*) as count FROM appointments WHERE doctor_id = ? AND deleted_at IS NULL",
+            args: [id]
+        });
+        const appointmentCount = checkRes.rows[0].count;
+
         if (force === 'true') {
-            await db.execute({ sql: "DELETE FROM appointments WHERE doctor_id = ?", args: [id] });
-            await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [id] });
-            await logAction('DELETE', 'DOCTOR', id, "Deleted doctor and all assigned appointments (FORCE)");
-            res.json({ message: "Doctor and all appointments deleted" });
+            // Soft delete appointments
+            await db.execute({
+                sql: "UPDATE appointments SET deleted_at = ? WHERE doctor_id = ?",
+                args: [now, id]
+            });
+            // Soft delete doctor
+            await db.execute({
+                sql: "UPDATE doctors SET deleted_at = ? WHERE id = ?",
+                args: [now, id]
+            });
+            await logAction('DELETE', 'DOCTOR', id, "Soft deleted doctor and all assigned appointments (FORCE)");
+            res.json({ message: "Doctor and appointments soft deleted" });
+
         } else {
-            await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [id] });
-            await logAction('DELETE', 'DOCTOR', id, "Deleted doctor");
-            res.json({ message: "Doctor deleted" });
+            if (appointmentCount > 0) {
+                return res.status(400).json({ error: "No se puede eliminar el doctor porque tiene citas asignadas." });
+            }
+
+            // Soft delete doctor
+            await db.execute({
+                sql: "UPDATE doctors SET deleted_at = ? WHERE id = ?",
+                args: [now, id]
+            });
+            await logAction('DELETE', 'DOCTOR', id, "Soft deleted doctor");
+            res.json({ message: "Doctor soft deleted" });
         }
     } catch (err) {
-        // Check for foreign key constraint violation (LibSQL/SQLite specific)
-        if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || err.message.includes('FOREIGN KEY constraint failed')) {
-            return res.status(400).json({ error: "No se puede eliminar el doctor porque tiene citas asignadas." });
-        }
         handleDbError(res, err);
     }
 });
