@@ -9,7 +9,9 @@ const Dashboard = () => {
     const [stats, setStats] = useState({
         total_patients: 0,
         appointments_today: 0,
-        top_treatments: []
+        top_treatments: [],
+        pending_confirmations: [],
+        upcoming_reminders: []
     });
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
@@ -207,6 +209,100 @@ const Dashboard = () => {
                     <div>
                         <h3 className="text-gray-500 text-sm font-medium">{t('dashboard.kpi_response_time')}</h3>
                         <p className="text-2xl font-bold mt-1 text-gray-900">{stats.whatsapp_response_time || '-'}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Pending Confirmations & Reminders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Pending Confirmations */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
+                            <Activity className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.pending_confirmations_title') || 'Por Confirmar'}</h3>
+                    </div>
+                    <div className="space-y-3">
+                        {stats.pending_confirmations && stats.pending_confirmations.length > 0 ? (
+                            stats.pending_confirmations.map((apt) => (
+                                <div key={apt.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                    <div>
+                                        <p className="font-semibold text-gray-800">{apt.patient_name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {new Date(apt.start_time).toLocaleDateString()} - {new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                        <p className="text-xs text-blue-600">{apt.type_name}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const phone = apt.patient_phone ? apt.patient_phone.replace(/\D/g, '') : '';
+                                            if (!phone) return alert("Paciente sin teléfono");
+                                            const date = new Date(apt.start_time).toLocaleDateString();
+                                            const time = new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                            const msg = `Hola ${apt.patient_name}, te escribimos de Smart Dentist. Por favor confirma tu cita de *${apt.type_name}* el *${date}* a las *${time}*.`;
+                                            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                        }}
+                                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                        title="Enviar WhatsApp"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 italic text-center py-4 text-sm">{t('dashboard.no_pending') || 'No hay citas por confirmar'}</p>
+                        )}
+                        <button className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
+                            {t('dashboard.view_all') || 'Ver todas'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Upcoming Reminders */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="bg-purple-50 p-2 rounded-lg text-purple-600">
+                            <Calendar className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.reminders_title') || 'Recordatorios Mañana'}</h3>
+                    </div>
+                    <div className="space-y-3">
+                        {stats.upcoming_reminders && stats.upcoming_reminders.length > 0 ? (
+                            stats.upcoming_reminders.map((apt) => (
+                                <div key={apt.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                    <div>
+                                        <p className="font-semibold text-gray-800">{apt.patient_name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                        <p className="text-xs text-purple-600">{apt.type_name}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const phone = apt.patient_phone ? apt.patient_phone.replace(/\D/g, '') : '';
+                                            if (!phone) return alert("Paciente sin teléfono");
+                                            const time = new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                            const msg = `Hola ${apt.patient_name}, te recordamos tu cita mañana a las *${time}* en Smart Dentist. Te esperamos.`;
+                                            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                        }}
+                                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                        title="Enviar Recordatorio"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 italic text-center py-4 text-sm">{t('dashboard.no_reminders') || 'No hay citas mañana'}</p>
+                        )}
+                        <button className="w-full text-center text-blue-600 text-sm font-medium hover:underline mt-2">
+                            {t('dashboard.view_all') || 'Ver todas'}
+                        </button>
                     </div>
                 </div>
             </div>

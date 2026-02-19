@@ -397,27 +397,61 @@ app.get('/api/stats', async (req, res) => {
         `
     };
 
+    // Calculate dates for reminders (Tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    // Queries for widgets
+    const pendingQuery = `
+        SELECT a.id, a.start_time, p.name as patient_name, p.phone as patient_phone, t.name as type_name
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        JOIN appointment_types t ON a.type_id = t.id
+        WHERE a.status = 'pending' 
+        AND a.start_time >= '${today}'
+        AND a.deleted_at IS NULL
+        ${doctorFilterAlias}
+        ORDER BY a.start_time ASC
+        LIMIT 10
+    `;
+
+    const remindersQuery = `
+        SELECT a.id, a.start_time, p.name as patient_name, p.phone as patient_phone, t.name as type_name
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        JOIN appointment_types t ON a.type_id = t.id
+        WHERE date(a.start_time) = '${tomorrowStr}'
+        AND a.status != 'cancelled'
+        AND a.deleted_at IS NULL
+        ${doctorFilterAlias}
+        ORDER BY a.start_time ASC
+        LIMIT 10
+    `;
+
     const stats = {
         whatsapp_response_time: "12 min"
     };
 
     try {
-        // Run queries in parallel for better performance since logic was nested but independent
-        // Except for appointments_list which depends on nothing but params.
-
-        const [totalPatientsRes, appointmentsTodayRes, cancelledRes, topTreatmentsRes] = await Promise.all([
+        // Run queries in parallel
+        const [totalPatientsRes, appointmentsTodayRes, cancelledRes, topTreatmentsRes, pendingRes, remindersRes] = await Promise.all([
             db.execute(queries.total_patients),
             db.execute(queries.appointments_today),
             db.execute(queries.cancelled_appointments),
-            db.execute(queries.top_treatments)
+            db.execute(queries.top_treatments),
+            db.execute(pendingQuery),
+            db.execute(remindersQuery)
         ]);
 
-        stats.total_patients = totalPatientsRes.rows[0].count; // LibSQL returns count as number or bigint, usually safe
+        stats.total_patients = totalPatientsRes.rows[0].count;
         stats.appointments_today = appointmentsTodayRes.rows[0].count;
         stats.cancelled_appointments = cancelledRes.rows[0].count;
         stats.top_treatments = topTreatmentsRes.rows;
+        stats.pending_confirmations = pendingRes.rows;
+        stats.upcoming_reminders = remindersRes.rows;
 
-        // Fetch detailed list
+        // Fetch detailed list (existing logic)
         const appointmentsQuery = `
             SELECT a.id, a.start_time, p.name as patient_name, d.name as doctor_name, d.color as doctor_color, t.name as type_name
             FROM appointments a
