@@ -156,7 +156,10 @@ export const translations = {
             active: "Activo",
             confirm_delete_item: "¿Seguro que deseas eliminar este elemento?",
             error_delete: "Error al eliminar",
-            error_save: "Error al guardar"
+            error_save: "Error al guardar",
+            status_confirmed: "Confirmada",
+            status_pending: "Pendiente",
+            status_cancelled: "Cancelada"
         }
     },
     en: {
@@ -316,7 +319,10 @@ export const translations = {
             active: "Active",
             confirm_delete_item: "Are you sure you want to delete this item?",
             error_delete: "Error deleting item",
-            error_save: "Error saving item"
+            error_save: "Error saving item",
+            status_confirmed: "Confirmed",
+            status_pending: "Pending",
+            status_cancelled: "Cancelled"
         }
     }
 };
