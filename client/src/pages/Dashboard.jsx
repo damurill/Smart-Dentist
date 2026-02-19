@@ -68,7 +68,7 @@ const Dashboard = () => {
 
     const updateAppointmentStatus = async (id, newStatus) => {
         try {
-            await axios.put(`/api/appointments/${id}`, { status: newStatus });
+            await axios.patch(`/api/appointments/${id}/status`, { status: newStatus });
             // Refresh dashboard data
             setLoading(true);
             const params = {
