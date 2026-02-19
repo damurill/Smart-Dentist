@@ -41,6 +41,11 @@ app.use('/api/', limiter); // Apply to all API routes
 // Serve static files from React app
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
+// --- HEALTH CHECK ROUTE ---
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // --- AUTH ROUTES ---
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
