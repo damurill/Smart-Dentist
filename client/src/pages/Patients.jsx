@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
 import axios from '../utils/axiosConfig';
 import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users, FileText, X, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { locations } from '../constants/locations';
 
 const Patients = () => {
     const { t } = useLanguage();
@@ -9,7 +10,7 @@ const Patients = () => {
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
+    const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '', province: '', district: '' });
 
     // History Modal State
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
@@ -231,6 +232,35 @@ const Patients = () => {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
                         <h3 className="text-lg font-bold mb-4">{t('patients.modal_title_new')}</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                                    <select
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 transition-colors bg-white"
+                                        value={formData.province}
+                                        onChange={e => setFormData({ ...formData, province: e.target.value, district: '' })}
+                                    >
+                                        <option value="">Seleccionar...</option>
+                                        {Object.keys(locations).map(p => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Distrito</label>
+                                    <select
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 transition-colors bg-white"
+                                        value={formData.district}
+                                        onChange={e => setFormData({ ...formData, district: e.target.value })}
+                                        disabled={!formData.province}
+                                    >
+                                        <option value="">Seleccionar...</option>
+                                        {formData.province && locations[formData.province]?.map(d => (
+                                            <option key={d} value={d}>{d}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('patients.form_name')}</label>
                                 <input

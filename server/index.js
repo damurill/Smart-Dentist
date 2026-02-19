@@ -117,25 +117,25 @@ app.get('/api/patients', async (req, res) => {
 });
 
 app.post('/api/patients', async (req, res) => {
-    const { name, phone, email, notes } = req.body;
-    const sql = "INSERT INTO patients (name, phone, email, notes) VALUES (?, ?, ?, ?)";
+    const { name, phone, email, notes, province, district } = req.body;
+    const sql = "INSERT INTO patients (name, phone, email, notes, province, district) VALUES (?, ?, ?, ?, ?, ?)";
 
     try {
-        const result = await db.execute({ sql, args: [name, phone, email, notes] });
+        const result = await db.execute({ sql, args: [name, phone, email, notes, province || null, district || null] });
         const id = parseInt(result.lastInsertRowid);
         await logAction('CREATE', 'PATIENT', id, `Created patient: ${name}`);
-        res.json({ id, name, phone, email, notes });
+        res.json({ id, name, phone, email, notes, province, district });
     } catch (err) {
         handleDbError(res, err);
     }
 });
 
 app.put('/api/patients/:id', async (req, res) => {
-    const { name, phone, email, notes } = req.body;
-    const sql = "UPDATE patients SET name = ?, phone = ?, email = ?, notes = ? WHERE id = ?";
+    const { name, phone, email, notes, province, district } = req.body;
+    const sql = "UPDATE patients SET name = ?, phone = ?, email = ?, notes = ?, province = ?, district = ? WHERE id = ?";
 
     try {
-        const result = await db.execute({ sql, args: [name, phone, email, notes, req.params.id] });
+        const result = await db.execute({ sql, args: [name, phone, email, notes, province || null, district || null, req.params.id] });
         await logAction('UPDATE', 'PATIENT', req.params.id, `Updated patient: ${name}`);
         res.json({ message: "Patient updated", changes: result.rowsAffected });
     } catch (err) {
@@ -311,26 +311,26 @@ app.get('/api/doctors', async (req, res) => {
 });
 
 app.post('/api/doctors', async (req, res) => {
-    const { name, color, phone } = req.body;
+    const { name, color, phone, province, district } = req.body;
     try {
         const result = await db.execute({
-            sql: "INSERT INTO doctors (name, color, phone) VALUES (?, ?, ?)",
-            args: [name, color, phone || null]
+            sql: "INSERT INTO doctors (name, color, phone, province, district) VALUES (?, ?, ?, ?, ?)",
+            args: [name, color, phone || null, province || null, district || null]
         });
         const id = parseInt(result.lastInsertRowid);
         await logAction('CREATE', 'DOCTOR', id, `Added doctor: ${name}`);
-        res.json({ id, name, color, phone });
+        res.json({ id, name, color, phone, province, district });
     } catch (err) {
         handleDbError(res, err);
     }
 });
 
 app.put('/api/doctors/:id', async (req, res) => {
-    const { name, color, phone } = req.body;
+    const { name, color, phone, province, district } = req.body;
     try {
         await db.execute({
-            sql: "UPDATE doctors SET name = ?, color = ?, phone = ? WHERE id = ?",
-            args: [name, color, phone || null, req.params.id]
+            sql: "UPDATE doctors SET name = ?, color = ?, phone = ?, province = ?, district = ? WHERE id = ?",
+            args: [name, color, phone || null, province || null, district || null, req.params.id]
         });
         await logAction('UPDATE', 'DOCTOR', req.params.id, `Updated doctor: ${name}`);
         res.json({ message: "Doctor updated" });

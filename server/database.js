@@ -25,7 +25,9 @@ async function initDatabase() {
             birth_date TEXT,
             notes TEXT,
             tags TEXT,
-            deleted_at TEXT DEFAULT NULL
+            deleted_at TEXT DEFAULT NULL,
+            province TEXT,
+            district TEXT
         )`);
 
         // Doctors/Resources Table - Updated with new columns
@@ -34,7 +36,9 @@ async function initDatabase() {
             name TEXT NOT NULL,
             color TEXT NOT NULL DEFAULT '#3b82f6',
             phone TEXT DEFAULT NULL,
-            deleted_at TEXT DEFAULT NULL
+            deleted_at TEXT DEFAULT NULL,
+            province TEXT,
+            district TEXT
         )`);
 
         // Appointment Types Table
@@ -77,8 +81,12 @@ async function initDatabase() {
 
         // --- Safe Auto-Migrations ---
         await safeMigrate(client, 'patients', 'deleted_at', 'TEXT DEFAULT NULL');
+        await safeMigrate(client, 'patients', 'province', 'TEXT');
+        await safeMigrate(client, 'patients', 'district', 'TEXT');
         await safeMigrate(client, 'doctors', 'phone', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'doctors', 'deleted_at', 'TEXT DEFAULT NULL');
+        await safeMigrate(client, 'doctors', 'province', 'TEXT');
+        await safeMigrate(client, 'doctors', 'district', 'TEXT');
         await safeMigrate(client, 'appointments', 'deleted_at', 'TEXT DEFAULT NULL');
 
         await seedData();
