@@ -96,7 +96,7 @@ const Patients = () => {
             </div>
 
             {/* Patients List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
                 {loading ? (
                     <div className="p-8 text-center text-gray-400">{t('common.loading')}</div>
                 ) : patients.length === 0 ? (
@@ -163,7 +163,7 @@ const Patients = () => {
                                                     <MoreHorizontal className="w-5 h-5" />
                                                 </button>
                                                 {/* Dropdown Menu */}
-                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 hidden group-hover:block z-10">
+                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 hidden group-hover:block z-50">
                                                     <button
                                                         onClick={() => handleViewHistory(patient)}
                                                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
