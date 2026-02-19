@@ -8,25 +8,25 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    obfuscator({
-      compact: true,
-      controlFlowFlattening: true,
-      deadCodeInjection: true,
-      debugProtection: false,
-      disableConsoleOutput: true,
-      selfDefending: false,
-      stringArray: true,
-      rotateStringArray: true,
-      shuffleStringArray: true,
-      splitStrings: true,
-    }),
+    // obfuscator({
+    //   compact: true,
+    //   controlFlowFlattening: true,
+    //   deadCodeInjection: true,
+    //   debugProtection: false,
+    //   disableConsoleOutput: true,
+    //   selfDefending: false,
+    //   stringArray: true,
+    //   rotateStringArray: true,
+    //   shuffleStringArray: true,
+    //   splitStrings: true,
+    // }),
   ],
   build: {
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console.logs
-        drop_debugger: true,
+        drop_console: false, // Keep console.logs for debugging
+        drop_debugger: false,
       },
       format: {
         comments: false, // Remove comments
