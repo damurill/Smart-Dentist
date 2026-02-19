@@ -8,18 +8,19 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    // obfuscator({
-    //   compact: true,
-    //   controlFlowFlattening: true,
-    //   deadCodeInjection: true,
-    //   debugProtection: false,
-    //   disableConsoleOutput: true,
-    //   selfDefending: false,
-    //   stringArray: true,
-    //   rotateStringArray: true,
-    //   shuffleStringArray: true,
-    //   splitStrings: true,
-    // }),
+    obfuscator({
+      compact: true,
+      controlFlowFlattening: false, // High risk of bugs
+      deadCodeInjection: false, // High risk of bugs
+      debugProtection: false, // Can annoy legitimate debugging
+      disableConsoleOutput: false, // Keep console for now
+      selfDefending: false,
+      stringArray: true, // Good for basic hiding
+      rotateStringArray: true,
+      shuffleStringArray: true,
+      splitStrings: false, // Can break logic sometimes
+      sourcemap: false
+    }),
   ],
   build: {
     minify: 'terser',
