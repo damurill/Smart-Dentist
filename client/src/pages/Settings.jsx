@@ -53,7 +53,8 @@ const Settings = () => {
             fetchData();
         } catch (error) {
             console.error("Error deleting item:", error);
-            alert(t('common.error_delete'));
+            const msg = error.response?.data?.error || t('common.error_delete');
+            alert(msg);
         }
     };
 

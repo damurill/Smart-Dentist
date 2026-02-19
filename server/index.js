@@ -215,6 +215,10 @@ app.delete('/api/doctors/:id', async (req, res) => {
         await db.execute({ sql: "DELETE FROM doctors WHERE id = ?", args: [req.params.id] });
         res.json({ message: "Doctor deleted" });
     } catch (err) {
+        // Check for foreign key constraint violation (LibSQL/SQLite specific)
+        if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || err.message.includes('FOREIGN KEY constraint failed')) {
+            return res.status(400).json({ error: "No se puede eliminar el doctor porque tiene citas asignadas." });
+        }
         handleDbError(res, err);
     }
 });
