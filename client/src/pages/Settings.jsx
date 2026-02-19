@@ -86,7 +86,8 @@ const Settings = () => {
             fetchData();
         } catch (error) {
             console.error("Error saving item:", error);
-            alert(t('common.error_save'));
+            const msg = error.response?.data?.error || error.message || t('common.error_save');
+            alert(`Error: ${msg}`);
         }
     };
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const db = require('./database'); // This is now the LibSQL client
+const { client: db, initDatabase } = require('./database'); // Destructure client as db
 require('dotenv').config();
 
 const app = express();
@@ -493,6 +493,11 @@ app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Initialize DB then start server
+initDatabase().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}).catch(err => {
+    console.error("Failed to initialize database:", err);
 });

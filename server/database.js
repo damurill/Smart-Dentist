@@ -102,6 +102,6 @@ async function seedData() {
 }
 
 // Initialize on require (or call explicitly)
-initDatabase();
+// initDatabase(); // Removed auto-run to avoid race condition
 
-module.exports = client;
+module.exports = { client, initDatabase };
