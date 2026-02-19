@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import axios from '../utils/axiosConfig';
 import { Search, Plus, Phone, Mail, MoreHorizontal, MessageCircle, Users, FileText, X, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
