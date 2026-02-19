@@ -72,8 +72,13 @@ async function initDatabase() {
             timestamp TEXT DEFAULT CURRENT_TIMESTAMP
         )`);
 
-        // --- Safe Auto-Migrations for existing databases ---
-        // These ensure that if the table existed from an older version, the new columns are added.
+        // Settings Table (Key-Value Store)
+        await client.execute(`CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )`);
+
+        // --- Safe Auto-Migrations ---
         await safeMigrate(client, 'doctors', 'phone', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'doctors', 'deleted_at', 'TEXT DEFAULT NULL');
         await safeMigrate(client, 'appointments', 'deleted_at', 'TEXT DEFAULT NULL');
@@ -134,6 +139,21 @@ async function seedData() {
             console.log("Seeding doctors...");
             await client.execute({ sql: "INSERT INTO doctors (name, color) VALUES (?, ?)", args: ['Dr. Principal', '#818cf8'] });
         }
+
+        // Seed Default Settings
+        const defaultSettings = [
+            { key: 'whatsapp_confirm', value: "Hola ${patient_name}, te escribimos de Smart Medical. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}* respondiendo a este mensaje." },
+            { key: 'whatsapp_reminder', value: "Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Smart Medical. Te esperamos." }
+        ];
+
+        for (const setting of defaultSettings) {
+            // Insert or Ignore to avoid overwriting user changes later (though for now it's seed)
+            await client.execute({
+                sql: "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+                args: [setting.key, setting.value]
+            });
+        }
+
     } catch (err) {
         console.error("Seeding failed:", err);
     }

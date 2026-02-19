@@ -38,16 +38,20 @@ const Calendar = () => {
 
 
 
+    const [settings, setSettings] = useState({});
+
     const fetchInitialData = async () => {
         try {
-            const [doctorsRes, typesRes, patientsRes] = await Promise.all([
+            const [doctorsRes, typesRes, patientsRes, settingsRes] = await Promise.all([
                 axios.get('/api/doctors'),
                 axios.get('/api/appointment_types'),
-                axios.get('/api/patients')
+                axios.get('/api/patients'),
+                axios.get('/api/settings')
             ]);
             setDoctors(doctorsRes.data);
             setTypes(typesRes.data);
             setPatients(patientsRes.data);
+            if (settingsRes.data) setSettings(settingsRes.data);
 
             if (doctorsRes.data.length > 0) setFormData(prev => ({ ...prev, doctor_id: doctorsRes.data[0].id }));
             if (typesRes.data.length > 0) setFormData(prev => ({ ...prev, type_id: typesRes.data[0].id }));
@@ -134,7 +138,13 @@ const Calendar = () => {
         }
     };
 
-    const sendWhatsApp = (template) => {
+    const MAX_URL_LENGTH = 2000;
+
+    const truncateForUrl = (str) => {
+        return str && str.length > 500 ? str.substring(0, 500) + '...' : str;
+    };
+
+    const sendWhatsApp = (templateType) => {
         if (!selectedAppointment) return;
         const { patient_name, patient_phone, start_time, type_name } = selectedAppointment;
         const date = format(new Date(start_time), "EEEE d 'de' MMMM", { locale: dateLocale });
@@ -146,13 +156,27 @@ const Calendar = () => {
             return;
         }
 
-        let message = "";
-        if (template === 'confirm') {
-            message = `Hola ${patient_name}, te escribimos de Smart Medical. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}* respondiendo a este mensaje.`;
-        } else if (template === 'reminder') {
-            message = `Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Smart Medical. Te esperamos.`;
+        let messageTemplate = "";
+
+        if (templateType === 'confirm') {
+            messageTemplate = settings.whatsapp_confirm ||
+                "Hola ${patient_name}, te escribimos de Smart Medical. Por favor confirma tu asistencia para tu cita de *${type_name}* el *${date}* a las *${time}*.";
+        } else if (templateType === 'reminder') {
+            messageTemplate = settings.whatsapp_reminder ||
+                "Hola ${patient_name}, recuerda tu cita de mañana a las *${time}* en Smart Medical. Te esperamos.";
         }
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+
+        // Replace placeholders safely
+        let message = messageTemplate
+            .replace(/\${patient_name}/g, patient_name || '')
+            .replace(/\${type_name}/g, type_name || '')
+            .replace(/\${date}/g, date || '')
+            .replace(/\${time}/g, time || '');
+
+        // Encode and check length - though unlikely to hit limit with just this text
+        const encodedMessage = encodeURIComponent(message);
+
+        window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
     };
 
     const updateStatus = async (status) => {
