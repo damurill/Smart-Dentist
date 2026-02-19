@@ -150,7 +150,20 @@ const Settings = () => {
                                     </div>
                                     <div>
                                         <span className="font-medium text-gray-900 block">{doc.name}</span>
-                                        {doc.phone && <span className="text-sm text-gray-500 block">{doc.phone}</span>}
+                                        {doc.phone && (
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-sm text-gray-500">{doc.phone}</span>
+                                                <a
+                                                    href={`https://wa.me/${doc.phone.replace(/[^0-9]/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center text-green-500 hover:text-green-600 hover:bg-green-50 rounded-full p-1 transition-colors"
+                                                    title="Enviar WhatsApp"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                                </a>
+                                            </div>
+                                        )}
                                         <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mt-1 inline-block">
                                             {doc.pending_appointments_count || 0} cita(s) pendiente(s)
                                         </span>
@@ -255,117 +268,119 @@ const Settings = () => {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-gray-900">
-                                {editingItem ? t('common.edit') : t('common.add')} {activeTab === 'doctors' ? t('common.doctor') : t('common.treatment')}
-                            </h3>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_name')}</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                />
+            {
+                showModal && (
+                    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-bold text-gray-900">
+                                    {editingItem ? t('common.edit') : t('common.add')} {activeTab === 'doctors' ? t('common.doctor') : t('common.treatment')}
+                                </h3>
+                                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_color')}</label>
-                                <div className="flex gap-2 items-center">
-                                    <input
-                                        type="color"
-                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0"
-                                        value={formData.color}
-                                        onChange={e => setFormData({ ...formData, color: e.target.value })}
-                                    />
-                                    <span className="text-sm text-gray-500 font-mono">{formData.color}</span>
-                                </div>
-                            </div>
-
-                            {activeTab === 'doctors' && (
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_name')}</label>
                                     <input
-                                        type="tel"
+                                        type="text"
+                                        required
                                         className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                        value={formData.phone || ''}
-                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                        placeholder="+1234567890"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
-                            )}
 
-                            {activeTab === 'treatments' && (
-                                <>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_duration')}</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                min="5"
-                                                step="5"
-                                                className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                                value={formData.duration_minutes}
-                                                onChange={e => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-                                            />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_color')}</label>
+                                    <div className="flex gap-2 items-center">
+                                        <input
+                                            type="color"
+                                            className="h-10 w-10 rounded cursor-pointer border-0 p-0"
+                                            value={formData.color}
+                                            onChange={e => setFormData({ ...formData, color: e.target.value })}
+                                        />
+                                        <span className="text-sm text-gray-500 font-mono">{formData.color}</span>
+                                    </div>
+                                </div>
+
+                                {activeTab === 'doctors' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                        <input
+                                            type="tel"
+                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                                            value={formData.phone || ''}
+                                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                            placeholder="+1234567890"
+                                        />
+                                    </div>
+                                )}
+
+                                {activeTab === 'treatments' && (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_duration')}</label>
+                                                <input
+                                                    type="number"
+                                                    required
+                                                    min="5"
+                                                    step="5"
+                                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                                                    value={formData.duration_minutes}
+                                                    onChange={e => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_price')}</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                                                    value={formData.price}
+                                                    onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                                                />
+                                            </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_price')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_follow_up_rule')}</label>
+                                            <p className="text-xs text-gray-500 mb-2">{t('settings.follow_up_help')}</p>
                                             <input
                                                 type="number"
                                                 min="0"
                                                 className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                                value={formData.price}
-                                                onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                                                value={formData.follow_up_rule_days}
+                                                onChange={e => setFormData({ ...formData, follow_up_rule_days: parseInt(e.target.value) })}
                                             />
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.form_follow_up_rule')}</label>
-                                        <p className="text-xs text-gray-500 mb-2">{t('settings.follow_up_help')}</p>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                            value={formData.follow_up_rule_days}
-                                            onChange={e => setFormData({ ...formData, follow_up_rule_days: parseInt(e.target.value) })}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                                    </>
+                                )}
 
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium transition-colors"
-                                >
-                                    {t('common.cancel')}
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    {t('common.save')}
-                                </button>
-                            </div>
-                        </form>
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowModal(false)}
+                                        className="flex-1 px-4 py-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        {t('common.save')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
