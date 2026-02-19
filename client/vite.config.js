@@ -8,6 +8,18 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.logs
+        drop_debugger: true,
+      },
+      format: {
+        comments: false, // Remove comments
+      },
+    },
+  },
   server: {
     allowedHosts: true,
     proxy: {

@@ -6,19 +6,36 @@ import { useLanguage } from '../context/LanguageContext';
 const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     // Fallback password just in caseenv var is missed, or strictly use env var.
     // User asked for "Smart2026".
     const APP_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Smart2026';
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (password === APP_PASSWORD) {
-            localStorage.setItem('isAuthenticated', 'true');
-            navigate('/');
-        } else {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('token', data.token); // Store JWT
+                navigate('/');
+            } else {
+                setError(true);
+                setTimeout(() => setError(false), 2000);
+            }
+        } catch (err) {
+            console.error("Login failed", err);
             setError(true);
-            setTimeout(() => setError(false), 2000);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -50,8 +67,8 @@ const Login = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${error
-                                            ? 'border-red-300 bg-red-50 focus:ring-red-500'
-                                            : 'border-gray-200 bg-white/50 focus:border-blue-500'
+                                        ? 'border-red-300 bg-red-50 focus:ring-red-500'
+                                        : 'border-gray-200 bg-white/50 focus:border-blue-500'
                                         }`}
                                     placeholder="••••••••"
                                     autoFocus

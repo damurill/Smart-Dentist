@@ -27,7 +27,7 @@ export const translations = {
             chart_title: "Proyección de Citas",
             chart_legend_next: "Próximos",
             top_treatments: "Top Tratamientos",
-            no_data: "No hay datos suficientes aún.",
+            no_data: "No hay datos para este periodo.",
             no_appointments_today: "No hay citas programadas para hoy.",
             appointments_list_title: "Citas por Doctor",
             pending_confirmations_title: "Confirmaciones Pendientes",

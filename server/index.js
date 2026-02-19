@@ -4,16 +4,10 @@ const path = require('path');
 const { client: db, initDatabase } = require('./database'); // Destructure client as db
 require('dotenv').config();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Serve static files from React app
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
+const { authenticateToken, JWT_SECRET } = require('./middleware/auth');
 
 // --- HELPER FUNCTIONS ---
 const logAction = async (action, entity, entity_id, details) => {
@@ -26,6 +20,58 @@ const logAction = async (action, entity, entity_id, details) => {
         console.error("Failed to log action:", err);
     }
 };
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Security Middleware
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow resources to be loaded
+app.use(cors());
+app.use(express.json());
+
+// Rate Limiting (Brute Force Protection)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', limiter); // Apply to all API routes
+
+// Serve static files from React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// --- AUTH ROUTES ---
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    const APP_PASSWORD = process.env.VITE_APP_PASSWORD || 'Smart2026';
+
+    if (password === APP_PASSWORD) {
+        // Generate Token
+        const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ token });
+    } else {
+        res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+});
+
+// Protect all API routes except login
+// NOTE: We apply auth middleware to specific routes or globally below login
+// For simplicity in this structure, we'll wrap critical routes or apply globally after public ones if any.
+// Let's apply it to all /api routes except login, but since login is already defined above, we can apply it now for subsequent routes.
+// However, waiting to confirm if there are public routes. Assuming all /api/ needs protection for now.
+
+app.use('/api/*', (req, res, next) => {
+    // Public Routes
+    if (req.path === '/api/login') return next();
+
+    // Allow Patient Portal access (GET appointment details, PATCH status)
+    // Regex for /api/appointments/:id and /api/appointments/:id/status
+    if (req.method === 'GET' && req.path.match(/^\/api\/appointments\/\d+$/)) return next();
+    if (req.method === 'PATCH' && req.path.match(/^\/api\/appointments\/\d+\/status$/)) return next();
+
+    authenticateToken(req, res, next);
+});
 
 // --- ROUTES ---
 
