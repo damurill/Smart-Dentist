@@ -220,34 +220,23 @@ const Settings = () => {
                 {activeTab === 'subscription' && (
                     <div className="p-8">
                         <div className="max-w-2xl mx-auto">
-                            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg mb-8 relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg mb-8 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-32 bg-white opacity-5 rounded-full transform translate-x-1/3 -translate-y-1/3"></div>
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-start mb-6">
                                         <div>
-                                            <p className="text-blue-100 font-medium mb-1">{t('settings.current_plan')}</p>
-                                            <h3 className="text-3xl font-bold">Smart Medical Pro</h3>
+                                            <p className="text-purple-100 font-medium mb-1">Plan Actual</p>
+                                            <h3 className="text-3xl font-bold">Versión Demo</h3>
                                         </div>
                                         <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold border border-white/20">
-                                            {t('common.active')}
+                                            Activo
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-8 mb-8">
-                                        <div>
-                                            <p className="text-blue-100 text-sm mb-1">{t('settings.next_payment')}</p>
-                                            <p className="font-semibold text-xl">1 Marzo, 2026</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-blue-100 text-sm mb-1">{t('settings.amount')}</p>
-                                            <p className="font-semibold text-xl">$29.99 <span className="text-sm font-normal text-blue-200">/ mes</span></p>
-                                        </div>
+                                    <div className="mb-8">
+                                        <p className="text-purple-100 mb-2">Esta es una versión de demostración con todas las funciones habilitadas.</p>
+                                        <p className="font-semibold text-xl">Gratis <span className="text-sm font-normal text-purple-200">/ ilimitado</span></p>
                                     </div>
-                                    <button
-                                        onClick={() => alert(t('settings.redirecting_payment'))}
-                                        className="w-full bg-white text-blue-600 font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors"
-                                    >
-                                        {t('settings.manage_subscription')}
-                                    </button>
+                                    {/* Botón eliminado o cambiado de propósito */}
                                 </div>
                             </div>
 
