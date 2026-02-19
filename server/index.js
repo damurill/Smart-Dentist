@@ -61,14 +61,14 @@ app.post('/api/login', (req, res) => {
 // Let's apply it to all /api routes except login, but since login is already defined above, we can apply it now for subsequent routes.
 // However, waiting to confirm if there are public routes. Assuming all /api/ needs protection for now.
 
-app.use('/api/*', (req, res, next) => {
+app.use('/api', (req, res, next) => {
     // Public Routes
-    if (req.path === '/api/login') return next();
+    if (req.path === '/login') return next();
 
     // Allow Patient Portal access (GET appointment details, PATCH status)
-    // Regex for /api/appointments/:id and /api/appointments/:id/status
-    if (req.method === 'GET' && req.path.match(/^\/api\/appointments\/\d+$/)) return next();
-    if (req.method === 'PATCH' && req.path.match(/^\/api\/appointments\/\d+\/status$/)) return next();
+    // Regex for /appointments/:id and /appointments/:id/status
+    if (req.method === 'GET' && req.path.match(/^\/appointments\/\d+$/)) return next();
+    if (req.method === 'PATCH' && req.path.match(/^\/appointments\/\d+\/status$/)) return next();
 
     authenticateToken(req, res, next);
 });
