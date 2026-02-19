@@ -217,7 +217,14 @@ app.get('/api/appointments/:id', async (req, res) => {
 // 3. DOCTORS
 app.get('/api/doctors', async (req, res) => {
     try {
-        const result = await db.execute("SELECT * FROM doctors WHERE deleted_at IS NULL");
+        const query = `
+            SELECT d.*, COUNT(a.id) as pending_appointments_count
+            FROM doctors d
+            LEFT JOIN appointments a ON d.id = a.doctor_id AND a.status != 'cancelled' AND a.deleted_at IS NULL AND a.start_time >= date('now')
+            WHERE d.deleted_at IS NULL
+            GROUP BY d.id
+        `;
+        const result = await db.execute(query);
         res.json(result.rows);
     } catch (err) {
         handleDbError(res, err);
@@ -225,21 +232,27 @@ app.get('/api/doctors', async (req, res) => {
 });
 
 app.post('/api/doctors', async (req, res) => {
-    const { name, color } = req.body;
+    const { name, color, phone } = req.body;
     try {
-        const result = await db.execute({ sql: "INSERT INTO doctors (name, color) VALUES (?, ?)", args: [name, color] });
+        const result = await db.execute({
+            sql: "INSERT INTO doctors (name, color, phone) VALUES (?, ?, ?)",
+            args: [name, color, phone || null]
+        });
         const id = parseInt(result.lastInsertRowid);
         await logAction('CREATE', 'DOCTOR', id, `Added doctor: ${name}`);
-        res.json({ id, name, color });
+        res.json({ id, name, color, phone });
     } catch (err) {
         handleDbError(res, err);
     }
 });
 
 app.put('/api/doctors/:id', async (req, res) => {
-    const { name, color } = req.body;
+    const { name, color, phone } = req.body;
     try {
-        await db.execute({ sql: "UPDATE doctors SET name = ?, color = ? WHERE id = ?", args: [name, color, req.params.id] });
+        await db.execute({
+            sql: "UPDATE doctors SET name = ?, color = ?, phone = ? WHERE id = ?",
+            args: [name, color, phone || null, req.params.id]
+        });
         await logAction('UPDATE', 'DOCTOR', req.params.id, `Updated doctor: ${name}`);
         res.json({ message: "Doctor updated" });
     } catch (err) {

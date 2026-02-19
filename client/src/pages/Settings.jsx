@@ -38,7 +38,7 @@ const Settings = () => {
     const handleOpenModal = (item = null) => {
         setEditingItem(item);
         if (activeTab === 'doctors') {
-            setFormData(item || { name: '', color: '#3b82f6' });
+            setFormData(item || { name: '', color: '#3b82f6', phone: '' });
         } else {
             setFormData(item || { name: '', duration_minutes: 30, price: 0, color: '#10b981', follow_up_rule_days: 0 });
         }
@@ -148,7 +148,13 @@ const Settings = () => {
                                     <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-sm" style={{ backgroundColor: doc.color }}>
                                         {doc.name.charAt(0)}
                                     </div>
-                                    <span className="font-medium text-gray-900">{doc.name}</span>
+                                    <div>
+                                        <span className="font-medium text-gray-900 block">{doc.name}</span>
+                                        {doc.phone && <span className="text-sm text-gray-500 block">{doc.phone}</span>}
+                                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                            {doc.pending_appointments_count || 0} cita(s) pendiente(s)
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="flex gap-2">
                                     <button onClick={() => handleOpenModal(doc)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -285,6 +291,19 @@ const Settings = () => {
                                     <span className="text-sm text-gray-500 font-mono">{formData.color}</span>
                                 </div>
                             </div>
+
+                            {activeTab === 'doctors' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                    <input
+                                        type="tel"
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                                        value={formData.phone || ''}
+                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                        placeholder="+1234567890"
+                                    />
+                                </div>
+                            )}
 
                             {activeTab === 'treatments' && (
                                 <>
