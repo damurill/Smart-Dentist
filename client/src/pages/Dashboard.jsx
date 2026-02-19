@@ -242,7 +242,7 @@ const Dashboard = () => {
                                             if (!phone) return alert("Paciente sin teléfono");
                                             const date = new Date(apt.start_time).toLocaleDateString();
                                             const time = new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                            const msg = `Hola ${apt.patient_name}, te escribimos de Clínica del Oeste. Por favor confirma tu cita de *${apt.type_name}* el *${date}* a las *${time}*.`;
+                                            const msg = `Hola ${apt.patient_name}, te escribimos de Clínica Dental Del Oeste. Por favor confirma tu cita de *${apt.type_name}* el *${date}* a las *${time}*.`;
                                             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                                         }}
                                         className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
@@ -289,7 +289,7 @@ const Dashboard = () => {
                                             const phone = apt.patient_phone ? apt.patient_phone.replace(/\D/g, '') : '';
                                             if (!phone) return alert("Paciente sin teléfono");
                                             const time = new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                            const msg = `Hola ${apt.patient_name}, te recordamos tu cita mañana a las *${time}* en Clínica del Oeste. Te esperamos.`;
+                                            const msg = `Hola ${apt.patient_name}, te recordamos tu cita mañana a las *${time}* en Clínica Dental Del Oeste. Te esperamos.`;
                                             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                                         }}
                                         className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
