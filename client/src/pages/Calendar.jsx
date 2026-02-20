@@ -132,7 +132,7 @@ const Calendar = () => {
             fetchAppointments();
         } catch (error) {
             console.error("Error booking appointment:", error);
-            alert("Error al agendar cita");
+            alert("Error al agendar cita: " + (error.response?.data?.error || error.message));
         }
     };
 
@@ -179,7 +179,7 @@ const Calendar = () => {
             fetchAppointments();
         } catch (e) {
             console.error(e);
-            alert("Error al actualizar estado");
+            alert("Error al actualizar estado: " + (e.response?.data?.error || e.message));
         }
     };
 
