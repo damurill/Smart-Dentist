@@ -18,8 +18,8 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token expired or invalid
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Token expired, invalid, or forbidden
             localStorage.removeItem('isAuthenticated');
             localStorage.removeItem('token');
             window.location.href = '/login';

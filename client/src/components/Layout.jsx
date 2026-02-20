@@ -95,6 +95,19 @@ const Layout = () => {
                         <span>{t('menu.settings')}</span>
                     </NavLink>
                 </div>
+                <div className="p-4 border-t border-gray-100 mt-auto">
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem('isAuthenticated');
+                            localStorage.removeItem('token');
+                            window.location.href = '/login';
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span className="font-medium">Cerrar Sesión</span>
+                    </button>
+                </div>
             </aside>
 
             {/* Main Content */}
