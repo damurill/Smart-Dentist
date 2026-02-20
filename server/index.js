@@ -388,7 +388,7 @@ app.delete('/api/doctors/:id', async (req, res) => {
 // 4. APPOINTMENT TYPES
 app.get('/api/appointment_types', async (req, res) => {
     try {
-        const result = await db.execute("SELECT * FROM appointment_types");
+        const result = await db.execute("SELECT * FROM appointment_types WHERE deleted_at IS NULL");
         res.json(result.rows);
     } catch (err) {
         handleDbError(res, err);
@@ -425,9 +425,12 @@ app.put('/api/appointment_types/:id', async (req, res) => {
 
 app.delete('/api/appointment_types/:id', async (req, res) => {
     try {
-        await db.execute({ sql: "DELETE FROM appointment_types WHERE id = ?", args: [req.params.id] });
-        await logAction('DELETE', 'TREATMENT', req.params.id, "Deleted treatment type");
-        res.json({ message: "Type deleted" });
+        await db.execute({
+            sql: "UPDATE appointment_types SET deleted_at = ? WHERE id = ?",
+            args: [new Date().toISOString(), req.params.id]
+        });
+        await logAction('DELETE', 'TREATMENT', req.params.id, "Soft deleted treatment type");
+        res.json({ message: "Type soft deleted" });
     } catch (err) {
         handleDbError(res, err);
     }

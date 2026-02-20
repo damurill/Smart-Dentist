@@ -88,6 +88,7 @@ async function initDatabase() {
         await safeMigrate(client, 'doctors', 'province', 'TEXT');
         await safeMigrate(client, 'doctors', 'district', 'TEXT');
         await safeMigrate(client, 'appointments', 'deleted_at', 'TEXT DEFAULT NULL');
+        await safeMigrate(client, 'appointment_types', 'deleted_at', 'TEXT DEFAULT NULL');
 
         await seedData();
         console.log("Database initialized successfully.");
