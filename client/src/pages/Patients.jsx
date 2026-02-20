@@ -59,6 +59,7 @@ const Patients = () => {
             fetchPatients();
         } catch (error) {
             console.error("Error creating patient:", error);
+            alert("Error al guardar paciente: " + (error.response?.data?.error || error.message));
         }
     };
 
@@ -70,7 +71,7 @@ const Patients = () => {
                 setActiveDropdown(null);
             } catch (error) {
                 console.error("Error deleting patient:", error);
-                alert("Error al eliminar el paciente");
+                alert("Error al eliminar el paciente: " + (error.response?.data?.error || error.message));
             }
         }
     };

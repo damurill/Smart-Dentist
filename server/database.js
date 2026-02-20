@@ -98,24 +98,20 @@ async function initDatabase() {
 
 async function safeMigrate(client, table, column, type) {
     try {
-        // Check if column exists using PRAGMA table_info
-        const info = await client.execute(`PRAGMA table_info(${table})`);
-
-        // Rows might be objects (name property) or arrays (index 1 is name) depending on driver version/config
-        const columns = info.rows.map(r => {
-            if (typeof r === 'object' && r !== null && 'name' in r) return r.name;
-            if (Array.isArray(r)) return r[1];
-            return r.name || r[1]; // Fallback
-        });
-
-        if (!columns.includes(column)) {
-            console.log(`Migrating: Adding ${column} to ${table}...`);
-            await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
-            console.log(`Migration Success: ${column} added to ${table}`);
-        }
+        console.log(`Migrating: Attempting to add ${column} to ${table}...`);
+        await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+        console.log(`Migration Success: ${column} added to ${table}`);
     } catch (e) {
-        // Log but don't crash init, unless critical
-        console.error(`Migration Failed for ${table}.${column}:`, e.message);
+        // Retrieve error message safely
+        const msg = e.message || e.toString();
+
+        // Check for common "duplicate column" errors in SQLite/LibSQL
+        if (msg.includes('duplicate column name')) {
+            // Column already exists, this is fine.
+            // console.log(`Migration Info: Column ${column} already exists in ${table}.`);
+        } else {
+            console.error(`Migration Failed for ${table}.${column}:`, msg);
+        }
     }
 }
 
