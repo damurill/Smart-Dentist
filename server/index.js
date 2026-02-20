@@ -465,13 +465,13 @@ app.get('/api/stats', async (req, res) => {
 
     const queries = {
         total_patients: "SELECT COUNT(*) as count FROM patients",
-        appointments_today: `SELECT COUNT(*) as count FROM appointments WHERE start_time >= '${today}' AND start_time <= '${endDate}' AND status != 'cancelled' ${doctorFilter}`,
-        cancelled_appointments: `SELECT COUNT(*) as count FROM appointments WHERE status = 'cancelled' ${doctorFilter}`,
+        appointments_today: `SELECT COUNT(*) as count FROM appointments WHERE start_time >= '${today}' AND start_time <= '${endDate}' AND status != 'cancelled' AND deleted_at IS NULL ${doctorFilter}`,
+        cancelled_appointments: `SELECT COUNT(*) as count FROM appointments WHERE status = 'cancelled' AND deleted_at IS NULL ${doctorFilter}`,
         top_treatments: `
             SELECT t.name, COUNT(a.id) as count 
             FROM appointments a 
             JOIN appointment_types t ON a.type_id = t.id 
-            WHERE a.status != 'cancelled' ${doctorFilterAlias}
+            WHERE a.status != 'cancelled' AND a.deleted_at IS NULL ${doctorFilterAlias}
             AND a.start_time >= '${today}' AND a.start_time <= '${endDate}'
             GROUP BY t.name 
             ORDER BY count DESC 
@@ -540,7 +540,7 @@ app.get('/api/stats', async (req, res) => {
             JOIN patients p ON a.patient_id = p.id
             JOIN doctors d ON a.doctor_id = d.id
             JOIN appointment_types t ON a.type_id = t.id
-            WHERE a.start_time >= ? AND a.start_time <= ? AND a.status != 'cancelled' ${doctorFilterAlias}
+            WHERE a.start_time >= ? AND a.start_time <= ? AND a.status != 'cancelled' AND a.deleted_at IS NULL ${doctorFilterAlias}
             ORDER BY a.start_time ASC
             LIMIT 50
         `;
@@ -554,24 +554,7 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-app.get('/api/patients/:id/history', async (req, res) => {
-    const { id } = req.params;
-    const query = `
-        SELECT a.*, t.name as type_name, d.name as doctor_name 
-        FROM appointments a
-        LEFT JOIN appointment_types t ON a.type_id = t.id
-        LEFT JOIN doctors d ON a.doctor_id = d.id
-        WHERE a.patient_id = ?
-        ORDER BY a.start_time DESC
-    `;
 
-    try {
-        const result = await db.execute({ sql: query, args: [id] });
-        res.json(result.rows);
-    } catch (err) {
-        handleDbError(res, err);
-    }
-});
 
 app.get('/api/appointments_filter', async (req, res) => {
     const { date, doctor_id } = req.query;
@@ -580,8 +563,9 @@ app.get('/api/appointments_filter', async (req, res) => {
         FROM appointments a
         JOIN patients p ON a.patient_id = p.id
         JOIN doctors d ON a.doctor_id = d.id
+        JOIN doctors d ON a.doctor_id = d.id
         JOIN appointment_types t ON a.type_id = t.id
-        WHERE 1=1
+        WHERE a.deleted_at IS NULL
     `;
     const args = [];
 
